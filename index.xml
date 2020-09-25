@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>chion~~~</title>
+    <link>https://choinyuan.github.io/</link>
+    <description>Recent content on chion~~~</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-hans</language>
+    <copyright>chionyuan</copyright>
+    <lastBuildDate>Fri, 25 Sep 2020 14:37:52 +0800</lastBuildDate>
+    
+	<atom:link href="https://choinyuan.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Xposedhook方法</title>
+      <link>https://choinyuan.github.io/posts/xposedhook%E6%96%B9%E6%B3%95/</link>
+      <pubDate>Fri, 25 Sep 2020 14:37:52 +0800</pubDate>
+      
+      <guid>https://choinyuan.github.io/posts/xposedhook%E6%96%B9%E6%B3%95/</guid>
+      <description>全局hook加载 hanldeLoadPackage(XC_loadPackage.loadPackageParam loadPackageParam)
+Hook普通方法 findAndHookMethod(clazz, methodname, String.class, new XC_MethodHook() { @Override protected void beforeHookMethod (MethodHookParam param) throws Throwable { Log.d(&amp;#34;TAG&amp;#34;,&amp;#34;emmmmm&amp;#34;); } @Override protected void afterHookMethod (MethodHookParam param) throws Throwable { Log.d(&amp;#34;TAG&amp;#34;,&amp;#34;emmmmm&amp;#34;); } }) Hook静态变量 1. 先findclass 找到类 2. xposedHelpers.setStaicIntField(clazz, &amp;#34;filenamed&amp;#34;, value) claszz-&amp;gt;对应的就是class的字节码。静态int的hook 3. xposedHelpers.setstaicobjectField(clazz, &amp;#34;filenamed&amp;#34;, value) claszz-&amp;gt;对应的就是class的字节码。object的hook java中string是一个对象 </description>
+    </item>
+    
+    <item>
+      <title>Xposed环境搭建</title>
+      <link>https://choinyuan.github.io/posts/xposed%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</link>
+      <pubDate>Fri, 25 Sep 2020 14:04:33 +0800</pubDate>
+      
+      <guid>https://choinyuan.github.io/posts/xposed%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</guid>
+      <description>导入xposed环境   app目录下新建 lib 目录，导入xposedbrige82api.jar
+  build.gralde 修改依赖。dependencies
+注意！此处要用compileOnly这个修饰符！网上有些写的是provide ，现在已经停用了！）如图：
+compileOnly &amp;#39;de.robv.android.xposed:api:82&amp;#39; compileOnly &amp;#39;de.robv.android.xposed:api:82:sources&amp;#39; compileOnly files(lib/api-82.jar) 【ps:如果网络不通，或者同步不畅，就不要进行第三步的repositories { jcenter()}这个步骤了，改做这个步骤：】
+ 手动下载XposedBridgeApi-82.jar ，拖放到“项目名称/app/libs/”里面（不是网上说的单独建立lib文件夹，那是很久以前的故事了！），然后右键“Add As Library” 自行添加这个jar包。而compileOnly &amp;lsquo;de.robv.android.xposed:api:82&amp;rsquo;和 compileOnly &amp;lsquo;de.robv.android.xposed:api:82:sources&amp;rsquo;这两句仍然照常添加。
+   Manifest.xml
+&amp;lt;meta-data android:name=&amp;#34;xposedmodule&amp;#34; android:value=&amp;#34;true&amp;#34; /&amp;gt; &amp;lt;meta-data android:name=&amp;#34;xposeddescription&amp;#34; android:value=&amp;#34;我是一个Xposed例程&amp;#34; /&amp;gt; &amp;lt;meta-data android:name=&amp;#34;xposedminversion&amp;#34; android:value=&amp;#34;53&amp;#34; /&amp;gt; xposedmodule：value为true，表示自己是一个xposed模块 xposeddescription：value中的文字就是对模块的描述，这些能够在手机上的Xposed框架中看到，举个栗子 xposedminversion：xposed最低版本，这些应该都是向下兼容的吧？所以直接填最低版本好了
+  右键点击 main ， 选择new &amp;ndash;&amp;gt; Folder &amp;ndash;&amp;gt;Assets Folder&amp;ndash;&amp;gt;xposed_init 这里输入 hook点。这样xposed才会去hook。
+  </description>
+    </item>
+    
+    <item>
+      <title>About me</title>
+      <link>https://choinyuan.github.io/about/</link>
+      <pubDate>Thu, 24 Sep 2020 17:51:42 +0000</pubDate>
+      
+      <guid>https://choinyuan.github.io/about/</guid>
+      <description>QQ:614899502
+记录自己成长历程,学习无边界。</description>
+    </item>
+    
+    <item>
+      <title>幸せ</title>
+      <link>https://choinyuan.github.io/posts/2016-10-22-z/</link>
+      <pubDate>Sat, 22 Oct 2016 16:56:54 +0000</pubDate>
+      
+      <guid>https://choinyuan.github.io/posts/2016-10-22-z/</guid>
+      <description>:-)
+Look at the stars
+抬头仰望满天繁星
+Look how they shine for you
+看它们为你绽放着 闪烁不息
+And everything you do
+而你的一颦一举
+Yeah&amp;rsquo; they were all Yellow
+却满含胆怯和羞意
+I came along
+我追随着你的气息
+I wrote a song for you
+为你写下一首歌曲
+And all the things you do
+回想着你的所有举动和笑意
+it was called Yellow
+并用Yellow为这首歌命名
+So then I took my turn
+我耗尽心力
+Oh what a thing to have done
+用行动表达我的爱意
+And it was all Yellow
+噢这过程充满不安羞怯和点滴暖意
+Your skin</description>
+    </item>
+    
+  </channel>
+</rss>
