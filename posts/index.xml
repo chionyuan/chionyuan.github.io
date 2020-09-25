@@ -2,32 +2,32 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on chion~~~</title>
-    <link>https://choinyuan.github.io/posts/</link>
+    <link>https://chionyuan.github.io/posts/</link>
     <description>Recent content in Posts on chion~~~</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-hans</language>
     <copyright>chionyuan</copyright>
     <lastBuildDate>Fri, 25 Sep 2020 14:37:52 +0800</lastBuildDate>
     
-	<atom:link href="https://choinyuan.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://chionyuan.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Xposedhook方法</title>
-      <link>https://choinyuan.github.io/posts/xposedhook%E6%96%B9%E6%B3%95/</link>
+      <link>https://chionyuan.github.io/posts/xposedhook%E6%96%B9%E6%B3%95/</link>
       <pubDate>Fri, 25 Sep 2020 14:37:52 +0800</pubDate>
       
-      <guid>https://choinyuan.github.io/posts/xposedhook%E6%96%B9%E6%B3%95/</guid>
+      <guid>https://chionyuan.github.io/posts/xposedhook%E6%96%B9%E6%B3%95/</guid>
       <description>全局hook加载 hanldeLoadPackage(XC_loadPackage.loadPackageParam loadPackageParam)
 Hook普通方法 findAndHookMethod(clazz, methodname, String.class, new XC_MethodHook() { @Override protected void beforeHookMethod (MethodHookParam param) throws Throwable { Log.d(&amp;#34;TAG&amp;#34;,&amp;#34;emmmmm&amp;#34;); } @Override protected void afterHookMethod (MethodHookParam param) throws Throwable { Log.d(&amp;#34;TAG&amp;#34;,&amp;#34;emmmmm&amp;#34;); } }) Hook静态变量 1. 先findclass 找到类 2. xposedHelpers.setStaicIntField(clazz, &amp;#34;filenamed&amp;#34;, value) claszz-&amp;gt;对应的就是class的字节码。静态int的hook 3. xposedHelpers.setstaicobjectField(clazz, &amp;#34;filenamed&amp;#34;, value) claszz-&amp;gt;对应的就是class的字节码。object的hook java中string是一个对象 </description>
     </item>
     
     <item>
       <title>Xposed环境搭建</title>
-      <link>https://choinyuan.github.io/posts/xposed%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</link>
+      <link>https://chionyuan.github.io/posts/xposed%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</link>
       <pubDate>Fri, 25 Sep 2020 14:04:33 +0800</pubDate>
       
-      <guid>https://choinyuan.github.io/posts/xposed%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</guid>
+      <guid>https://chionyuan.github.io/posts/xposed%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</guid>
       <description>导入xposed环境   app目录下新建 lib 目录，导入xposedbrige82api.jar
   build.gralde 修改依赖。dependencies
 注意！此处要用compileOnly这个修饰符！网上有些写的是provide ，现在已经停用了！）如图：
@@ -41,10 +41,10 @@ compileOnly &amp;#39;de.robv.android.xposed:api:82&amp;#39; compileOnly &amp;#39
     
     <item>
       <title>幸せ</title>
-      <link>https://choinyuan.github.io/posts/2016-10-22-z/</link>
+      <link>https://chionyuan.github.io/posts/2016-10-22-z/</link>
       <pubDate>Sat, 22 Oct 2016 16:56:54 +0000</pubDate>
       
-      <guid>https://choinyuan.github.io/posts/2016-10-22-z/</guid>
+      <guid>https://chionyuan.github.io/posts/2016-10-22-z/</guid>
       <description>:-)
 Look at the stars
 抬头仰望满天繁星

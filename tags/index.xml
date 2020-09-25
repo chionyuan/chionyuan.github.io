@@ -2,13 +2,13 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on chion~~~</title>
-    <link>https://choinyuan.github.io/tags/</link>
+    <link>https://chionyuan.github.io/tags/</link>
     <description>Recent content in Tags on chion~~~</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-hans</language>
     <copyright>chionyuan</copyright>
     
-	<atom:link href="https://choinyuan.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://chionyuan.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     
     
   </channel>
