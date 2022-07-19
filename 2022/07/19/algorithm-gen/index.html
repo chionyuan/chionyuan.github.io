@@ -6,18 +6,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="结合逆向的一些大型app算法，以及工作中对api改进的一些思考等等… 故有此篇文章，如果你有更完美的方案，可继续沿用您的方案，如果毫无头绪，不知从何下手， 那不妨看看此篇文章，说不定对你有收获。 如何保证安全？如何签名？如何防重？A计划最简单的hash算法md5。 例如GET请求：https:&#x2F;&#x2F;url&#x2F;api&#x2F;v1&#x2F;getUserInfo?userid&#x3D;111 123456可设置一个盐salt，">
+    <meta name="description" content="结合逆向的一些大型app算法，以及工作中对api改进的一些思考等等… 故有此篇文章，如果你有更完美的方案，可继续沿用您的方案，如果毫无头绪，不知从何下手， 那不妨看看此篇文章，说不定对你有收获。 如何保证安全？如何签名？如何防重？如何明确调用者的调用行为​         方法很简单，那就是把调用行为涉及的关键信息都放到签名内容中进行签名。那么，哪些是关键信息呢？ 请求的方法和接口  即每个请求M">
 <meta property="og:type" content="article">
 <meta property="og:title" content="如何设计符合业务的API算法？">
 <meta property="og:url" content="http://chionyuan.github.io/2022/07/19/algorithm-gen/index.html">
 <meta property="og:site_name" content="一只想登珠峰的猪">
-<meta property="og:description" content="结合逆向的一些大型app算法，以及工作中对api改进的一些思考等等… 故有此篇文章，如果你有更完美的方案，可继续沿用您的方案，如果毫无头绪，不知从何下手， 那不妨看看此篇文章，说不定对你有收获。 如何保证安全？如何签名？如何防重？A计划最简单的hash算法md5。 例如GET请求：https:&#x2F;&#x2F;url&#x2F;api&#x2F;v1&#x2F;getUserInfo?userid&#x3D;111 123456可设置一个盐salt，">
+<meta property="og:description" content="结合逆向的一些大型app算法，以及工作中对api改进的一些思考等等… 故有此篇文章，如果你有更完美的方案，可继续沿用您的方案，如果毫无头绪，不知从何下手， 那不妨看看此篇文章，说不定对你有收获。 如何保证安全？如何签名？如何防重？如何明确调用者的调用行为​         方法很简单，那就是把调用行为涉及的关键信息都放到签名内容中进行签名。那么，哪些是关键信息呢？ 请求的方法和接口  即每个请求M">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://chionyuan.github.io/images/pasted-18.png">
 <meta property="article:published_time" content="2022-07-19T07:33:00.000Z">
-<meta property="article:modified_time" content="2022-07-19T08:29:34.663Z">
+<meta property="article:modified_time" content="2022-07-19T08:43:27.168Z">
 <meta property="article:author" content="chionyuan">
 <meta property="article:tag" content="msec">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://chionyuan.github.io/images/pasted-18.png">
     
     
       
@@ -106,7 +108,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E5%AE%89%E5%85%A8%EF%BC%9F%E5%A6%82%E4%BD%95%E7%AD%BE%E5%90%8D%EF%BC%9F%E5%A6%82%E4%BD%95%E9%98%B2%E9%87%8D%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">如何保证安全？如何签名？如何防重？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#A%E8%AE%A1%E5%88%92"><span class="toc-number">1.1.</span> <span class="toc-text">A计划</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#B%E8%AE%A1%E5%88%92"><span class="toc-number">1.2.</span> <span class="toc-text">B计划</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#C%E8%AE%A1%E5%88%92"><span class="toc-number">1.3.</span> <span class="toc-text">C计划</span></a></li></ol></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E5%AE%89%E5%85%A8%EF%BC%9F%E5%A6%82%E4%BD%95%E7%AD%BE%E5%90%8D%EF%BC%9F%E5%A6%82%E4%BD%95%E9%98%B2%E9%87%8D%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">如何保证安全？如何签名？如何防重？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E6%98%8E%E7%A1%AE%E8%B0%83%E7%94%A8%E8%80%85%E7%9A%84%E8%B0%83%E7%94%A8%E8%A1%8C%E4%B8%BA"><span class="toc-number">1.1.</span> <span class="toc-text">如何明确调用者的调用行为</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82%E7%9A%84%E6%96%B9%E6%B3%95%E5%92%8C%E6%8E%A5%E5%8F%A3"><span class="toc-number">1.1.1.</span> <span class="toc-text">请求的方法和接口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82%E7%9A%84%E5%86%85%E5%AE%B9"><span class="toc-number">1.1.2.</span> <span class="toc-text">请求的内容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%98%B2%E9%87%8D%E6%94%BE"><span class="toc-number">1.1.3.</span> <span class="toc-text">防重放</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82%E7%9A%84%E6%97%B6%E6%95%88%E6%80%A7"><span class="toc-number">1.1.4.</span> <span class="toc-text">请求的时效性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6"><span class="toc-number">1.1.5.</span> <span class="toc-text">版本控制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#A%E8%AE%A1%E5%88%92"><span class="toc-number">1.2.</span> <span class="toc-text">A计划</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#B%E8%AE%A1%E5%88%92"><span class="toc-number">1.3.</span> <span class="toc-text">B计划</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#C%E8%AE%A1%E5%88%92"><span class="toc-number">1.4.</span> <span class="toc-text">C计划</span></a></li></ol></li></ol>
     </div>
   </span>
 </div>
@@ -158,9 +160,30 @@
     <p>结合逆向的一些大型app算法，以及工作中对api改进的一些思考等等…</p>
 <p>故有此篇文章，如果你有更完美的方案，可继续沿用您的方案，如果毫无头绪，不知从何下手，</p>
 <p>那不妨看看此篇文章，说不定对你有收获。</p>
-<h1 id="如何保证安全？如何签名？如何防重？"><a href="#如何保证安全？如何签名？如何防重？" class="headerlink" title="如何保证安全？如何签名？如何防重？"></a>如何保证安全？如何签名？如何防重？</h1><h2 id="A计划"><a href="#A计划" class="headerlink" title="A计划"></a>A计划</h2><p>最简单的hash算法md5。</p>
+<h1 id="如何保证安全？如何签名？如何防重？"><a href="#如何保证安全？如何签名？如何防重？" class="headerlink" title="如何保证安全？如何签名？如何防重？"></a>如何保证安全？如何签名？如何防重？</h1><h2 id="如何明确调用者的调用行为"><a href="#如何明确调用者的调用行为" class="headerlink" title="如何明确调用者的调用行为"></a>如何明确调用者的调用行为</h2><p>​         方法很简单，那就是把调用行为涉及的关键信息都放到签名内容中进行签名。那么，哪些是关键信息呢？</p>
+<h3 id="请求的方法和接口"><a href="#请求的方法和接口" class="headerlink" title="请求的方法和接口"></a>请求的方法和接口</h3><p>  即每个请求Method和URL，这是每个请求都有的信息，且最为关键的信息。</p>
+<h3 id="请求的内容"><a href="#请求的内容" class="headerlink" title="请求的内容"></a>请求的内容</h3><p>​         请求内容一般指HEADERS、QueryString、BODY三大类。</p>
+<p>​         那么，哪一类内容需要添加的签名内容中呢？</p>
+<p> 一个简单的判断标准，就是看这一块的内容的变更是否影响请求结果，若影响了，一般要求加入到签名内容中；若设计时还不确定，则全部内容加到签名内容中即可。</p>
+<p>  备注：实际上，一般是哪个字段有影响，添加哪个字段最简洁；但这样的话，服务端就非常麻烦，需要对每个API接口的每个字段分析，无论请求端还是服务端实现都特别麻烦且需要每个接口进行签名联调，不太现实。所以，一般是按大类进行的。</p>
+<p>  好了，到这里，API签名似乎已经完成了。</p>
+<h3 id="防重放"><a href="#防重放" class="headerlink" title="防重放"></a>防重放</h3><p>​         但是，对于部分请求来说，是有请求一次性要求，即同一请求内容一次和两次的结果是不一样的。这种情况下，恶意攻击者，截取一个合法请求后，不停地使用该请求对服务端进行攻击；这种攻击可能造成</p>
+<p>​        （1）如果该请求是写请求，且服务端逻辑允许重复（如A向B转1元），则会造成严重后果。</p>
+<p>​        （2）如果该请求是非常耗时操作，则可能造成服务性能下降。</p>
+<p>​        （3）如果是普通读请求，看似无害，实则量大也是对后端服务性能的一种消化。</p>
+<p>​         所以，在API签名这里，需要进行防重放设计，可以为后端其他服务减少压力。实现的方法，也很简单，那就是调用者每次调用时：</p>
+<p>​        A：调用者生成并带上一个随机数<strong>Nonce</strong></p>
+<p>​        B：服务端该随机数是否已出现，有则拒绝，无则存储该随机数并放过请求</p>
+<p>​         这里服务端要保证Nonce唯一，就得存储已经用过的Nonce，但长期保持会带来两个问题</p>
+<p>​        （1）存储成本增加，日积月累，这里要存储的Nonce会越来越多，需要的存储空间就越大</p>
+<p>​        （2）碰撞概率增加，正常服务被拒绝概率增大；这里随着生成Nonce值越来越多，碰撞的概率一定越来越大，若通过增加Nonce值的长度，有增加存储成本。</p>
+<p>​         那么，另一个可行的办法，就是调用者每次请求时带上当前请求时间点Timestamp，然后由服务端限制请求的时效性。</p>
+<h3 id="请求的时效性"><a href="#请求的时效性" class="headerlink" title="请求的时效性"></a>请求的时效性</h3><p>​         即某个请求，其请求时间戳<strong>Timestamp</strong>，和服务端的当前时间在规定时间内（如1分钟内）则为合法请求，反之，则视为无效请求。</p>
+<p>​         如此，上面提到的Nonce值存储成本可能比较大的问题，在结合Timestamp后，可大大降低存储成本，如Timestamp&#x3D;1min，则仅需存储1min内的请求Nonce值即可，大大减少存储的量级。</p>
+<h3 id="版本控制"><a href="#版本控制" class="headerlink" title="版本控制"></a>版本控制</h3><p>​         另外，每个设计都很难做到完美，或者当前看已经比较完善，但随着技术的发展，会逐渐的暴露一些缺陷，此时，想做一个可持续发展的API签名方案，版本迭代自然少不了，所以，请求内容也可加上版本信息。</p>
+<h2 id="A计划"><a href="#A计划" class="headerlink" title="A计划"></a>A计划</h2><p>最简单的hash算法md5。</p>
 <p>例如GET请求：<a target="_blank" rel="noopener" href="https://url/api/v1/getUserInfo?userid=111">https://url/api/v1/getUserInfo?userid=111</a></p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">可设置一个盐salt，当然这个是需要写死在客户端的。sign=md5(<span class="string">&quot;GET/api/v1/getUserInfouserid=111&quot;</span>+salt)</span><br><span class="line">不过这样没有对timestamp校验，nonce做防重攻击。</span><br><span class="line">可适当扩展请求头nonce，timestamp</span><br><span class="line">sign=md5(<span class="string">&quot;GET/api/v1/getUserInfouserid=111&quot;</span>+timestamp+nonce+salt)</span><br><span class="line">同时业务对nonce做防重放判断，time做失效判断。</span><br><span class="line">md5可换成任何<span class="built_in">hash</span>算法，为啥推荐<span class="built_in">hash</span>算法，直接计算散列值，只是做一层简简单单的签名而已。</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sign=md5(<span class="string">&quot;GET/api/v1/getUserInfouserid=111&quot;</span>+timestamp+nonce+salt)</span><br><span class="line">同时业务对nonce做防重放判断，time做失效判断。</span><br><span class="line">md5可换成任何<span class="built_in">hash</span>算法，为啥推荐<span class="built_in">hash</span>算法，直接计算散列值，只是做一层简简单单的签名而已。</span><br></pre></td></tr></table></figure>
 
 
 
@@ -222,7 +245,11 @@
 
 <p>上述一些检测，会在后面慢慢写，总不可能一口气把一头象吞完吧。</p>
 <p>一般这种层面都是由网关控制的。</p>
+<p><img src="/images/pasted-18.png" alt="upload successful"></p>
+<p>这张图很适合，当然以目前的能力，做对应的模块就行。</p>
+<p>风控系统还不完善的话，围绕sdk和api做就行。</p>
 <p>参考：</p>
+<p>移动安全解决方案：<a target="_blank" rel="noopener" href="https://www.qianxin.com/trade/detail/tid/29">https://www.qianxin.com/trade/detail/tid/29</a></p>
 <p>App防Bot新版ATT方案浅析与算法还原:<a target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-270914.htm">https://bbs.pediy.com/thread-270914.htm</a></p>
 <p>ppp买菜IOS版设备风控浅析与算法还原:<a target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-270097.htm#msg_header_h3_4">https://bbs.pediy.com/thread-270097.htm#msg_header_h3_4</a></p>
 
@@ -252,7 +279,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E5%AE%89%E5%85%A8%EF%BC%9F%E5%A6%82%E4%BD%95%E7%AD%BE%E5%90%8D%EF%BC%9F%E5%A6%82%E4%BD%95%E9%98%B2%E9%87%8D%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">如何保证安全？如何签名？如何防重？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#A%E8%AE%A1%E5%88%92"><span class="toc-number">1.1.</span> <span class="toc-text">A计划</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#B%E8%AE%A1%E5%88%92"><span class="toc-number">1.2.</span> <span class="toc-text">B计划</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#C%E8%AE%A1%E5%88%92"><span class="toc-number">1.3.</span> <span class="toc-text">C计划</span></a></li></ol></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E5%AE%89%E5%85%A8%EF%BC%9F%E5%A6%82%E4%BD%95%E7%AD%BE%E5%90%8D%EF%BC%9F%E5%A6%82%E4%BD%95%E9%98%B2%E9%87%8D%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">如何保证安全？如何签名？如何防重？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E6%98%8E%E7%A1%AE%E8%B0%83%E7%94%A8%E8%80%85%E7%9A%84%E8%B0%83%E7%94%A8%E8%A1%8C%E4%B8%BA"><span class="toc-number">1.1.</span> <span class="toc-text">如何明确调用者的调用行为</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82%E7%9A%84%E6%96%B9%E6%B3%95%E5%92%8C%E6%8E%A5%E5%8F%A3"><span class="toc-number">1.1.1.</span> <span class="toc-text">请求的方法和接口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82%E7%9A%84%E5%86%85%E5%AE%B9"><span class="toc-number">1.1.2.</span> <span class="toc-text">请求的内容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%98%B2%E9%87%8D%E6%94%BE"><span class="toc-number">1.1.3.</span> <span class="toc-text">防重放</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82%E7%9A%84%E6%97%B6%E6%95%88%E6%80%A7"><span class="toc-number">1.1.4.</span> <span class="toc-text">请求的时效性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6"><span class="toc-number">1.1.5.</span> <span class="toc-text">版本控制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#A%E8%AE%A1%E5%88%92"><span class="toc-number">1.2.</span> <span class="toc-text">A计划</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#B%E8%AE%A1%E5%88%92"><span class="toc-number">1.3.</span> <span class="toc-text">B计划</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#C%E8%AE%A1%E5%88%92"><span class="toc-number">1.4.</span> <span class="toc-text">C计划</span></a></li></ol></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">
