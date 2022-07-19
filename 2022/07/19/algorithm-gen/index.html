@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="结合逆向的一些大型app算法，以及工作中对api改进的一些思考等等… 故有此篇文章，如果你有更完美的方案，可继续沿用您的方案，如果毫无头绪，不知从何下手， 那不妨看看此篇文章，说不定对你有收获。 如何保证安全？如何签名？如何防重？A计划最简单的hash算法md5。 例如GET请求：https:&#x2F;&#x2F;url&#x2F;api&#x2F;v1&#x2F;getUserInfo?userid&#x3D;111 123456可设置一个盐salt，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何设计符合业务的API算法？">
+<meta property="og:url" content="http://chionyuan.github.io/2022/07/19/algorithm-gen/index.html">
+<meta property="og:site_name" content="一只想登珠峰的猪">
+<meta property="og:description" content="结合逆向的一些大型app算法，以及工作中对api改进的一些思考等等… 故有此篇文章，如果你有更完美的方案，可继续沿用您的方案，如果毫无头绪，不知从何下手， 那不妨看看此篇文章，说不定对你有收获。 如何保证安全？如何签名？如何防重？A计划最简单的hash算法md5。 例如GET请求：https:&#x2F;&#x2F;url&#x2F;api&#x2F;v1&#x2F;getUserInfo?userid&#x3D;111 123456可设置一个盐salt，">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-07-19T07:33:00.000Z">
+<meta property="article:modified_time" content="2022-07-19T08:29:34.663Z">
+<meta property="article:author" content="chionyuan">
+<meta property="article:tag" content="msec">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>如何设计符合业务的API算法？</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/secguide/">移动安全</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/chionyuan">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/07/18/ollvm_1/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://chionyuan.github.io/2022/07/19/algorithm-gen/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&text=如何设计符合业务的API算法？"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&title=如何设计符合业务的API算法？"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&is_video=false&description=如何设计符合业务的API算法？"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=如何设计符合业务的API算法？&body=Check out this article: http://chionyuan.github.io/2022/07/19/algorithm-gen/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&title=如何设计符合业务的API算法？"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&title=如何设计符合业务的API算法？"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&title=如何设计符合业务的API算法？"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&title=如何设计符合业务的API算法？"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&name=如何设计符合业务的API算法？&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://chionyuan.github.io/2022/07/19/algorithm-gen/&t=如何设计符合业务的API算法？"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E5%AE%89%E5%85%A8%EF%BC%9F%E5%A6%82%E4%BD%95%E7%AD%BE%E5%90%8D%EF%BC%9F%E5%A6%82%E4%BD%95%E9%98%B2%E9%87%8D%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">如何保证安全？如何签名？如何防重？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#A%E8%AE%A1%E5%88%92"><span class="toc-number">1.1.</span> <span class="toc-text">A计划</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#B%E8%AE%A1%E5%88%92"><span class="toc-number">1.2.</span> <span class="toc-text">B计划</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#C%E8%AE%A1%E5%88%92"><span class="toc-number">1.3.</span> <span class="toc-text">C计划</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        如何设计符合业务的API算法？
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">chionyuan</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-07-19T07:33:00.000Z" itemprop="datePublished">2022-07-19</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/msec/">msec</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/msec/" rel="tag">msec</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>结合逆向的一些大型app算法，以及工作中对api改进的一些思考等等…</p>
+<p>故有此篇文章，如果你有更完美的方案，可继续沿用您的方案，如果毫无头绪，不知从何下手，</p>
+<p>那不妨看看此篇文章，说不定对你有收获。</p>
+<h1 id="如何保证安全？如何签名？如何防重？"><a href="#如何保证安全？如何签名？如何防重？" class="headerlink" title="如何保证安全？如何签名？如何防重？"></a>如何保证安全？如何签名？如何防重？</h1><h2 id="A计划"><a href="#A计划" class="headerlink" title="A计划"></a>A计划</h2><p>最简单的hash算法md5。</p>
+<p>例如GET请求：<a target="_blank" rel="noopener" href="https://url/api/v1/getUserInfo?userid=111">https://url/api/v1/getUserInfo?userid=111</a></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">可设置一个盐salt，当然这个是需要写死在客户端的。sign=md5(<span class="string">&quot;GET/api/v1/getUserInfouserid=111&quot;</span>+salt)</span><br><span class="line">不过这样没有对timestamp校验，nonce做防重攻击。</span><br><span class="line">可适当扩展请求头nonce，timestamp</span><br><span class="line">sign=md5(<span class="string">&quot;GET/api/v1/getUserInfouserid=111&quot;</span>+timestamp+nonce+salt)</span><br><span class="line">同时业务对nonce做防重放判断，time做失效判断。</span><br><span class="line">md5可换成任何<span class="built_in">hash</span>算法，为啥推荐<span class="built_in">hash</span>算法，直接计算散列值，只是做一层简简单单的签名而已。</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="B计划"><a href="#B计划" class="headerlink" title="B计划"></a>B计划</h2><p>有时候，客户端的代码很容易被逆向破解，加密逻辑知道，攻击你的api也就轻轻松松了。</p>
+<p>而且不仅仅只有GET请求，post请求中的body，也是信息泄露的重要性。</p>
+<p>这个时候可对post请求体做对称加密，设计到对称加密，AES速度最为快速，但key又是个非常麻烦的东西。</p>
+<p>有的开发者会选择埋在客户端，当然可以，但是这个是最不推荐的，除非是某个不重要的功能，不然现在逆向工具满天飞，跑两步就trace出来了结果。<br>这一步就是解决key的存储问题，当然我推荐2套方案。<br>1.rsa+aes.<br>这套方案的有点很明显，rsa加密nonce，用nonce作为aes加密的key，一般都是32位。<br>缺点也很明显，需要在客户端预埋公钥，rsa速度也很慢，当并发量上来时，对服务器的压力很大，尽管有aes加速，但是rsa没有，这种双模，对cpu的利用率往往会大于大多数算法。<br>2.hash+aes.<br>用nonce的hash值，作为aes的key，key取定长就行。这种优势很明显，快，同时缺点也很明显，我知道你什么加密不就行了，这部分仅仅作为对抗的开端。<br>我个人可以思考为：改进下hash算法，切客户端做好so层ollvm混淆和vmp。这套算法基本就能稳定奔放了。</p>
+<p>那么post请求体怎么办？<br>很简单，刚说的这么多只是选择那种算法，有时候post请求体长长的一串，加进签名里面，岂不是浪费传输效率。<br>一般都是md5(post请求体)&#x3D;p1.</p>
+<p>header:<br>  x-time:时间戳<br>  x-nonce：随机数<br>  x-sign：签名</p>
+<p>  x-sign&#x3D; aes(“GET或者POST+querystring+p1+time+nonce”)<br>但是这种加密的数据，往往只是计算个签名，没有丝毫意义，何必用aes加密呢。<br>aes加密了body，为啥还要加密签名呢。<br>正解：有时候业务往往不是这么简单的，比如一些接口会夹杂一些风控进去，会验证用户的环境。才有了C计划</p>
+<table>
+<thead>
+<tr>
+<th align="left">算法类型</th>
+<th align="left">加密耗时</th>
+<th align="left">解密耗时</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">RSA</td>
+<td align="left">380317 ns&#x2F;op</td>
+<td align="left">34427 ns&#x2F;op</td>
+</tr>
+<tr>
+<td align="left">AES</td>
+<td align="left">885 ns&#x2F;op</td>
+<td align="left">938 ns&#x2F;op</td>
+</tr>
+<tr>
+<td align="left">HmacSHA256</td>
+<td align="left">1458 ns&#x2F;op</td>
+<td align="left">1458 ns&#x2F;op</td>
+</tr>
+</tbody></table>
+<h2 id="C计划"><a href="#C计划" class="headerlink" title="C计划"></a>C计划</h2><p>当然还是绕不开aes的问题，因为对称加密，往往能把我们想要的东西给携带过来。</p>
+<p>我在逆向某些app的时候，发现他们的请求头都是有好几个加密过的参数，且很长一串。</p>
+<p>当解密发现，携带的全是用户的环境，设备环境等等。。</p>
+<p>还有时候会发很多日志，基于日志的离线分析，当然这种设计风控层面了。</p>
+<p>但往往正是需要这种功能，api签名才会变得这么复杂，不然恶心自己，何必呢。</p>
+<p>1.针对有设备指纹的情况，或者强登录的业务，个人建议与账户或者设备绑定一个key。</p>
+<p>这个key可以用来aes加密。也就是秘钥下发的功能。当然肯定是密文，需要本地解密拿到真正的key。</p>
+<p>2.当然很多情况下，都是随机生成一个key去做对称加密的秘钥，只是看这个key如何去上传了。</p>
+<p>我举个例子，假如业务中需要反爬，例如点外卖这种业务来说。<br>我一部分要防止竞品来爬取我的价格，以至于进行价格调整。还一部分要防止撸羊毛等等，总之需要防御的业务场景太多。<br>防止ddos等等，不然几个亿的人没外卖吃，哈哈哈。</p>
+<p>对于这种强防御的接口，api签名敢随随便便做吗，那肯定不能，都这个级别的app了，在怎么也有人搞吧，而且分不清真假用户，那么他们也许就会上风控，那风控怎么做，光api埋点吗，那也能误杀太多用户了。所以得从设备上下手，因为你点外卖，得从手机点啊。<br>你要是逆向，你肯定很少人用日常手机吧，光环境就折腾死，肯定选个过时的手机，自己diy一下，或者群控也是，毕竟对抗也是要成本的。那么手机有了，我当然怕你作弊，这个时候设备指纹的作用就体现了。<br>但是你要说设备指纹绑定了太多东西，有可能我的离线分析引擎，达不到我实时风控的需求，等你分析完，我价格早就爬取完了。所以说实时引擎也很重要，但也误杀多啊。</p>
+<p>那不就简单，实时+离线。<br>我个人理想状态是这样的，也许这个模型需要慢慢优化，我没做过后端风控，不理解。</p>
+<p>那么实时检测啥啊，参考wtoken(蚂蚁的app防火墙)：</p>
+<ul>
+<li>首先你的设备指纹要把，一般都是一个id</li>
+<li>模拟器，hook，云手机，群控，传感器，root，注入调试等等。</li>
+</ul>
+<p>往往这些东西，被逆向干净之后，轻而易举就能仿照。<br>但是，那又怎么样，服务端的策略一大把，人和机器总是能区分的，只不过是误杀率高一点而已。<br>爬虫总不可能链路来源很完整吧，比如我拿到很多店铺的id，我逆向店铺接口，传一个id就行了。<br>那么点外卖是怎么点，总有个source——id吧，从哪个页面进来的，把这些参数往上一传，整个模型分析下，<br>你拿什么和我斗？</p>
+<p>很多公司的技术，并没有达到这么恐怖的级别，也可能是我认知不够，可能他们远远做的更离谱。</p>
+<p>但是对于这套算法，我的想法是多套结合。</p>
+<p>客户端内置好几套算法，api下发版本选择，或者根据设备签发版本号。</p>
+<p>且算法强度很大，往往都是一层protobuf。protobuf中包含了许多签名等等。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">headers:</span><br><span class="line">x-sign:验证签名值，一层经过aes加密的protobuf，包含api签名，应用签名等等</span><br><span class="line">x-waf:顾名思义，防火墙。将真机实时环境封装，加密压缩上传，服务器端解密再去做风控决策</span><br></pre></td></tr></table></figure>
+
+
+
+<p>上述一些检测，会在后面慢慢写，总不可能一口气把一头象吞完吧。</p>
+<p>一般这种层面都是由网关控制的。</p>
+<p>参考：</p>
+<p>App防Bot新版ATT方案浅析与算法还原:<a target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-270914.htm">https://bbs.pediy.com/thread-270914.htm</a></p>
+<p>ppp买菜IOS版设备风控浅析与算法还原:<a target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-270097.htm#msg_header_h3_4">https://bbs.pediy.com/thread-270097.htm#msg_header_h3_4</a></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+         
+          <li><a href="/secguide/">移动安全</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="http://github.com/chionyuan">项目</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E5%AE%89%E5%85%A8%EF%BC%9F%E5%A6%82%E4%BD%95%E7%AD%BE%E5%90%8D%EF%BC%9F%E5%A6%82%E4%BD%95%E9%98%B2%E9%87%8D%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">如何保证安全？如何签名？如何防重？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#A%E8%AE%A1%E5%88%92"><span class="toc-number">1.1.</span> <span class="toc-text">A计划</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#B%E8%AE%A1%E5%88%92"><span class="toc-number">1.2.</span> <span class="toc-text">B计划</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#C%E8%AE%A1%E5%88%92"><span class="toc-number">1.3.</span> <span class="toc-text">C计划</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://chionyuan.github.io/2022/07/19/algorithm-gen/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&text=如何设计符合业务的API算法？"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&title=如何设计符合业务的API算法？"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&is_video=false&description=如何设计符合业务的API算法？"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=如何设计符合业务的API算法？&body=Check out this article: http://chionyuan.github.io/2022/07/19/algorithm-gen/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&title=如何设计符合业务的API算法？"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&title=如何设计符合业务的API算法？"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&title=如何设计符合业务的API算法？"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&title=如何设计符合业务的API算法？"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://chionyuan.github.io/2022/07/19/algorithm-gen/&name=如何设计符合业务的API算法？&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://chionyuan.github.io/2022/07/19/algorithm-gen/&t=如何设计符合业务的API算法？"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2022
+    chionyuan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/secguide/">移动安全</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/chionyuan">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
