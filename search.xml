@@ -4,6 +4,25 @@
   
     
     <entry>
+      <title>安卓如何完美的加载so库</title>
+      <link href="/2022/07/26/%E5%AE%89%E5%8D%93%E5%A6%82%E4%BD%95%E5%AE%8C%E7%BE%8E%E7%9A%84%E5%8A%A0%E8%BD%BDso%E5%BA%93/"/>
+      <url>/2022/07/26/%E5%AE%89%E5%8D%93%E5%A6%82%E4%BD%95%E5%AE%8C%E7%BE%8E%E7%9A%84%E5%8A%A0%E8%BD%BDso%E5%BA%93/</url>
+      
+        <content type="html"><![CDATA[<p>android系统加载so一般有2种方式</p><h2 id="system-loadlibrary"><a href="#system-loadlibrary" class="headerlink" title="system.loadlibrary"></a>system.loadlibrary</h2><p>由给定的库名参数加载对应的本地库。库名参数不能包含任何平台相关的前缀、文件扩展符或路径。</p><p>正常情况下，都是这种方法加载。</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> &#123;</span><br><span class="line">    System.<span class="built_in">loadLibrary</span>(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h2 id="system-load"><a href="#system-load" class="headerlink" title="system.load"></a>system.load</h2><p>根据传入的文件名参数，加载此本地库。文件名必须是一个绝对路径。</p><p>这种方式适用于动态加载So，比如一些壳子的做法，将so放在assert目录下，动态加载so。</p><p>因为传递的都是一个绝对路径。</p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> &#123;</span><br><span class="line">    System.<span class="built_in">load</span>(<span class="string">&quot;D:&quot;</span> + File.separator + <span class="string">&quot;Hello.so&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>System.getProperty(“java.library.path”)的值即是系统库的默认路径，loadLibrary方法会主动到此路径下<br>查找对应的库文件。</p><p>System.load()方法和System.loadLibrary的另一个区别就是，在处理库之间的依赖关系时。<br> 假定现在有俩个库：A.dll 和 B.dll 并且A.dll依赖于B.dll，如果使用System.load(“D:&#x2F;A.dll”)的话，<br> 即使B.dll和A.dll位于同一个目录下，也会抛出异常。在这种情形下，JVM知道A.dll依赖于B.dll的话，它就会尝试着<br> 在java.library.path下查找B.dll，如果找不到B.dll就会报错。</p><p>在这种情况下，有俩种解决方案：</p><ol><li>先调用System.load(“D:&#x2F;B.dll”),再调用System.load(“D:&#x2F;A.dll”)</li><li>把A.dll和B.dll 都放在java.library.path下面，之后，再调用System.loadLibrary(“A”)就可以了。</li></ol><h2 id="Relinker"><a href="#Relinker" class="headerlink" title="Relinker"></a>Relinker</h2><p><a href="https://github.com/KeepSafe/ReLinker">https://github.com/KeepSafe/ReLinker</a></p><p>以上两种方法最底层走的都是同一个native方法。</p><p>然而对于开发者来说，我有时候仅仅只是想加载一个so文件，没必要这么复杂。</p><p>那么此时又2个开源库，soloader和relinker。</p><p>更推荐用relinker，因为是优先loadLibrary，失败再去load。双重保障</p><p>官网介绍很简单：</p><p>Simply replace a call to <code>System.loadLibrary</code> like this:</p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">System.<span class="built_in">loadLibrary</span>(<span class="string">&quot;mylibrary&quot;</span>);</span><br></pre></td></tr></table></figure><p>With a call to <code>ReLinker.loadLibrary</code> like this:</p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ReLinker.<span class="built_in">loadLibrary</span>(context, <span class="string">&quot;mylibrary&quot;</span>);</span><br></pre></td></tr></table></figure><p>还有加载成功与失败的回调</p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ReLinker.<span class="built_in">loadLibrary</span>(context, <span class="string">&quot;mylibrary&quot;</span>, <span class="keyword">new</span> ReLinker.<span class="built_in">LoadListener</span>() &#123;</span><br><span class="line">    @Override</span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="built_in">success</span>() &#123; <span class="comment">/* Yay */</span> &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="built_in">failure</span>(Throwable t) &#123; <span class="comment">/* Boo */</span> &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure><p>安卓加载so原理分析：<a href="https://cloud.tencent.com/developer/article/1563054">https://cloud.tencent.com/developer/article/1563054</a></p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> android </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>如何设计符合业务的API算法？</title>
       <link href="/2022/07/19/algorithm-gen/"/>
       <url>/2022/07/19/algorithm-gen/</url>
